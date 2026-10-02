@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} · TV Monitor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">TV Monitor</div>
+  <nav>
+    <a href="{{ url_for('web.index') }}" class="{{ 'active' if active == 'missing' }}">Missing</a>
+    <a href="{{ url_for('web.shows') }}" class="{{ 'active' if active == 'shows' }}">Shows</a>
+    <a href="{{ url_for('web.settings') }}" class="{{ 'active' if active == 'settings' }}">Settings</a>
+  </nav>
+  <div class="scanbox">
+    <span id="scan-status" class="muted"></span>
+    <button id="run-now" class="btn primary" type="button">Run scan now</button>
+  </div>
+</header>
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}<div class="banner {{ cat }}">{{ msg }}</div>{% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<div id="toast" class="toast" hidden></div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Missing episodes{% endblock %}
+{% block content %}
+{% if last_run and last_run.status in ('failed', 'warning') %}
+  <div class="banner {{ last_run.status }}">
+    Last scan {{ last_run.started_at|when }}: {{ last_run.message }}
+  </div>
+{% endif %}
+
+<section class="summary">
+  <div class="stat"><span class="num" id="count-missing">{{ episodes|length }}</span><span>missing episodes</span></div>
+  <div class="stat"><span class="num" id="count-queued">{{ queued }}</span><span>set up for retrieval</span></div>
+  <div class="stat"><span class="num">{{ show_count }}</span><span>shows affected</span></div>
+</section>
+
+{% if not has_paths or not has_key %}
+  <div class="empty">
+    <h2>Finish setting up</h2>
+    <p>
+      {% if not has_paths %}Add at least one scan location{% endif %}
+      {% if not has_paths and not has_key %} and {% endif %}
+      {% if not has_key %}enter your TheTVDB API key{% endif %}
+      on the <a href="{{ url_for('web.settings') }}">Settings</a> page, then run a scan.
+    </p>
+  </div>
+{% elif not last_run %}
+  <div class="empty"><h2>No scans yet</h2><p>Use <b>Run scan now</b> to check your library.</p></div>
+{% elif not episodes %}
+  <div class="empty"><h2>Nothing missing</h2><p>Every aired episode in the checked seasons is on disk.</p></div>
+{% else %}
+  <div class="toolbar">
+    <input type="search" id="filter" placeholder="Filter by show, title or S01E01…" aria-label="Filter">
+    <label class="check"><input type="checkbox" id="hide-queued"> Hide episodes already set up</label>
+  </div>
+  <div class="table-wrap">
+  <table class="grid" id="missing-table">
+    <thead>
+      <tr>
+        <th class="c-check" title="Ticked = already set up for retrieval">Set up</th>
+        <th>Aired</th><th>Show</th><th>Episode</th><th>Title</th><th>First detected</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for e in episodes %}
+      {% set code = e|epcode %}
+      <tr data-id="{{ e.episode_id }}" class="{{ 'queued' if e.flagged_at }}"
+          data-search="{{ (e.show_name ~ ' ' ~ (e.name or '') ~ ' ' ~ code)|lower }}">
+        <td class="c-check">
+          <input type="checkbox" class="flag" {{ 'checked' if e.flagged_at }}
+                 aria-label="Set up for retrieval: {{ e.show_name }} {{ code }}"
+                 title="{{ 'Set up ' ~ (e.flagged_at|when) if e.flagged_at else 'Mark as set up for retrieval' }}">
+        </td>
+        <td class="nowrap">{{ e.aired }}<div class="sub">{{ e.aired|ago }}</div></td>
+        <td><a href="{{ series_url(e.tvdb_id, e.slug) }}" target="_blank" rel="noopener">{{ e.show_name }}</a></td>
+        <td class="mono nowrap">{{ code }}</td>
+        <td title="{{ e.overview or '' }}">{{ e.name or '—' }}</td>
+        <td class="muted nowrap">{{ (e.first_detected or '')[:10] }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p id="no-matches" class="muted" hidden>No episodes match the filter.</p>
+{% endif %}
+{% endblock %}

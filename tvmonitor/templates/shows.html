@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Shows{% endblock %}
+{% block content %}
+<h1>Shows</h1>
+<p class="muted">
+  Every <code>{tvdb-…}</code> folder found in your scan locations. Leave <b>Start season</b> blank to use the
+  default (season {{ default_min_season }}). Changes apply from the next scan.
+</p>
+{% if not shows %}
+  <div class="empty"><p>No shows yet. Add scan locations in <a href="{{ url_for('web.settings') }}">Settings</a> and run a scan.</p></div>
+{% else %}
+<div class="toolbar">
+  <input type="search" id="show-filter" placeholder="Filter shows…" aria-label="Filter shows">
+</div>
+<div class="table-wrap">
+<table class="grid" id="shows-table">
+  <thead>
+    <tr><th>Show</th><th>TVDB ID</th><th>Status</th><th class="num">Files</th><th class="num">Missing</th>
+        <th>Start season</th><th>Ignore</th><th>Last checked</th></tr>
+  </thead>
+  <tbody>
+  {% for s in shows %}
+    <tr data-id="{{ s.tvdb_id }}" data-search="{{ (s.display ~ ' ' ~ s.tvdb_id)|lower }}"
+        class="{{ 'dim' if s.ignored or not s.present }}">
+      <td>
+        <a href="{{ series_url(s.tvdb_id, s.slug) }}" target="_blank" rel="noopener">{{ s.display }}</a>
+        <div class="sub" title="{{ s.folders|join('\n') }}">
+          {{ s.folders|length }} folder{{ 's' if s.folders|length != 1 }}{% if not s.present %} · not found in last scan{% endif %}
+        </div>
+        {% if s.last_error %}<div class="error-text">{{ s.last_error }}</div>{% endif %}
+      </td>
+      <td class="mono">{{ s.tvdb_id }}</td>
+      <td>{{ s.status or '' }}</td>
+      <td class="num">{{ s.episodes_on_disk }}</td>
+      <td class="num">{{ s.missing_count if not s.ignored else '—' }}</td>
+      <td><input type="number" min="1" class="min-season" value="{{ s.min_season or '' }}"
+                 placeholder="{{ default_min_season }}" aria-label="Start season for {{ s.display }}"></td>
+      <td><input type="checkbox" class="ignore" {{ 'checked' if s.ignored }} aria-label="Ignore {{ s.display }}"></td>
+      <td class="muted nowrap">{{ s.last_scanned|when }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% endblock %}

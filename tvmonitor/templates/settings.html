@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+
+<section class="card">
+  <h2>Scan locations</h2>
+  <p class="muted">
+    Folders that contain your <code>Show Name {tvdb-xxxxx}</code> folders, e.g. <code>/mnt/disk1/TVShows</code>.
+    A drive's root works too, because the scan also looks one folder down. A show split across several drives is merged by its TVDB id.
+  </p>
+  <table class="grid compact" id="paths-table">
+    <thead><tr><th>Path</th><th>Status</th><th>Enabled</th><th></th></tr></thead>
+    <tbody>
+    {% for p in paths %}
+      <tr data-id="{{ p.id }}">
+        <td class="mono">{{ p.path }}</td>
+        <td>{% if p.available %}<span class="pill ok">available</span>{% else %}<span class="pill bad">not found</span>{% endif %}</td>
+        <td><input type="checkbox" class="path-enabled" {{ 'checked' if p.enabled }} aria-label="Enabled"></td>
+        <td class="right"><button type="button" class="btn small danger path-remove">Remove</button></td>
+      </tr>
+    {% else %}
+      <tr class="placeholder"><td colspan="4" class="muted">No scan locations yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div class="add-path">
+    <input type="text" id="new-path" placeholder="/mnt/disk1/TVShows" aria-label="Folder path" autocomplete="off">
+    <button type="button" class="btn" id="browse-btn">Browse…</button>
+    <button type="button" class="btn primary" id="add-path-btn">Add location</button>
+  </div>
+</section>
+
+<form method="post" action="{{ url_for('web.settings') }}">
+  <section class="card">
+    <h2>TheTVDB</h2>
+    <p class="muted">Get an API key from <a href="https://thetvdb.com/api-information" target="_blank" rel="noopener">thetvdb.com/api-information</a>.
+      If it is a user-supported key, also enter your subscriber PIN.</p>
+    <div class="form-grid">
+      <label for="tvdb_api_key">API key</label>
+      <input type="password" id="tvdb_api_key" name="tvdb_api_key" value="{{ s.tvdb_api_key }}" autocomplete="off">
+      <label for="tvdb_pin">Subscriber PIN <span class="muted">(optional)</span></label>
+      <input type="password" id="tvdb_pin" name="tvdb_pin" value="{{ s.tvdb_pin }}" autocomplete="off">
+      <label for="language">Episode title language</label>
+      <input type="text" id="language" name="language" value="{{ s.language }}" maxlength="3" class="short"
+             placeholder="eng">
+      <label for="season_type">Episode order</label>
+      <select id="season_type" name="season_type">
+        {% for value, label in season_types %}
+          <option value="{{ value }}" {{ 'selected' if s.season_type == value }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <span></span>
+      <div><button type="button" class="btn" id="tvdb-test">Test connection</button> <span id="tvdb-test-result"></span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>What counts as missing</h2>
+    <div class="form-grid">
+      <label for="include_specials">Specials (Season 0)</label>
+      <label class="check"><input type="checkbox" id="include_specials" name="include_specials" {{ 'checked' if s.include_specials == '1' }}> Check specials too</label>
+      <label for="min_season">Start checking at season</label>
+      <div><input type="number" id="min_season" name="min_season" min="1" value="{{ s.min_season }}" class="short">
+        <span class="muted">Earlier seasons are skipped. You can override this per show on the Shows page.</span></div>
+      <label for="grace_days">Grace period (days)</label>
+      <div><input type="number" id="grace_days" name="grace_days" min="0" value="{{ s.grace_days }}" class="short">
+        <span class="muted">How long after the air date before an episode counts as missing.</span></div>
+      <label for="video_extensions">Video file types</label>
+      <input type="text" id="video_extensions" name="video_extensions" value="{{ s.video_extensions }}">
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Schedule</h2>
+    <div class="form-grid">
+      <label for="schedule_mode">Run automatically</label>
+      <select id="schedule_mode" name="schedule_mode">
+        <option value="daily" {{ 'selected' if s.schedule_mode == 'daily' }}>Once a day</option>
+        <option value="interval" {{ 'selected' if s.schedule_mode == 'interval' }}>Every N hours</option>
+        <option value="off" {{ 'selected' if s.schedule_mode == 'off' }}>Off (manual only)</option>
+      </select>
+      <label for="schedule_time" data-mode="daily">Time of day</label>
+      <input type="time" id="schedule_time" name="schedule_time" value="{{ s.schedule_time }}" class="short" data-mode="daily">
+      <label for="schedule_interval_hours" data-mode="interval">Every (hours)</label>
+      <input type="number" id="schedule_interval_hours" name="schedule_interval_hours" min="1"
+             value="{{ s.schedule_interval_hours }}" class="short" data-mode="interval">
+      <label for="cache_hours">Reuse TheTVDB data for (hours)</label>
+      <div><input type="number" id="cache_hours" name="cache_hours" min="0" value="{{ s.cache_hours }}" class="short">
+        <span class="muted">Makes a quick re-scan after adding files fast. Set 0 to always fetch fresh data.</span></div>
+    </div>
+  </section>
+
+  <div class="actions"><button type="submit" class="btn primary">Save settings</button></div>
+</form>
+
+<section class="card">
+  <h2>Recent scans</h2>
+  {% if runs %}
+  <div class="table-wrap">
+  <table class="grid compact">
+    <thead><tr><th>Started</th><th>Trigger</th><th>Result</th><th class="num">Missing</th><th>Details</th></tr></thead>
+    <tbody>
+    {% for r in runs %}
+      <tr>
+        <td class="nowrap">{{ r.started_at|when }}</td>
+        <td>{{ r.trigger }}</td>
+        <td><span class="pill {{ {'ok': 'ok', 'warning': 'warn', 'failed': 'bad'}.get(r.status, '') }}">{{ r.status }}</span></td>
+        <td class="num">{{ r.missing_found if r.status != 'running' else '' }}</td>
+        <td class="muted">{{ r.message or '' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}<p class="muted">No scans yet.</p>{% endif %}
+</section>
+
+<dialog id="browse-dialog">
+  <div class="dialog-head">
+    <strong>Choose a folder</strong>
+    <button type="button" class="btn small" id="browse-close" aria-label="Close">✕</button>
+  </div>
+  <div id="browse-path" class="mono"></div>
+  <ul id="browse-list"></ul>
+  <div class="dialog-foot">
+    <span id="browse-hint" class="muted"></span>
+    <button type="button" class="btn primary" id="browse-select">Use this folder</button>
+  </div>
+</dialog>
+{% endblock %}

@@ -1,0 +1,18 @@
+services:
+  tvmonitor:
+    build: .
+    container_name: tvmonitor
+    restart: unless-stopped
+    ports:
+      - "9494:9494"
+    environment:
+      TZ: America/New_York            # schedule runs in this time zone
+      # TVMONITOR_USER: admin
+      # TVMONITOR_PASSWORD: change-me
+    volumes:
+      - ./data:/data
+      # Mount each drive read-only; add these container paths as scan locations.
+      # On SELinux hosts (Rocky/RHEL/Fedora) reads may be denied: either use the
+      # systemd install instead, or append ",z" (this relabels the media folders).
+      - /mnt/disk1/TVShows:/media/disk1:ro
+      - /mnt/disk2/TVShows:/media/disk2:ro
