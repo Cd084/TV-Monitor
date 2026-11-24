@@ -2,6 +2,10 @@
 
 Scans a pool of drives for TV shows, compares what's on disk with TheTVDB, and lists aired episodes you don't have, newest first.
 
+It's a small self-hosted web app: Python and Flask, with SQLite for its data. Run it with systemd or Docker.
+
+Metadata provided by [TheTVDB](https://thetvdb.com). Please consider adding missing information or subscribing. TV Monitor is an independent project, not affiliated with or endorsed by TheTVDB.
+
 ## Requirements
 
 - Linux with systemd (Rocky/RHEL/Alma 8+, Fedora, Debian 11+, Ubuntu 20.04+, …) or Docker
@@ -21,9 +25,10 @@ The show is matched by the `{tvdb-…}` id in the folder name. Episodes come fro
 
 ## Install (systemd)
 
-Copy this folder to the server, then:
+Get the code onto the server, then run the installer:
 
 ```bash
+git clone https://github.com/Cd084/TV-Monitor.git tvmonitor
 cd tvmonitor
 sudo bash deploy/install.sh --user plex --open-firewall
 ```
@@ -41,7 +46,7 @@ Then open `http://<server>:9494`, go to **Settings**, add your scan locations, e
 | Host/port/login | `/etc/tvmonitor/tvmonitor.env` |
 | Logs | `journalctl -u tvmonitor -f` |
 
-To upgrade, copy the new files over and run `sudo bash deploy/install.sh` again. Your data and config are kept. To remove it, run `sudo bash deploy/uninstall.sh` (add `--purge` to delete the data too).
+To upgrade, run `git pull` in that folder, then `sudo bash deploy/install.sh` again. Your data and config are kept. To remove it, run `sudo bash deploy/uninstall.sh` (add `--purge` to delete the data too).
 
 **Login:** by default the web UI has no password. To require one, uncomment `TVMONITOR_USER` / `TVMONITOR_PASSWORD` in `/etc/tvmonitor/tvmonitor.env`, then run `systemctl restart tvmonitor`.
 
@@ -71,3 +76,22 @@ pip install -r requirements.txt
 python run.py            # http://127.0.0.1:9494, data in ./data
 python -m unittest discover -s tests
 ```
+
+## Privacy and security
+
+- TV Monitor reads file and folder names on your drives, and talks only to **TheTVDB's API**. It sends TheTVDB the show IDs from your folder names, your API key, and your subscriber PIN if you entered one.
+- Nothing else leaves the server. There are no ads, no analytics and no tracking.
+- The web UI has **no password by default**. Set one (see **Login** above) if anyone else can reach the port, and don't expose it to the internet without one.
+
+## Problems and ideas
+
+Please [open an issue](https://github.com/Cd084/TV-Monitor/issues). Include:
+- your OS, and whether you use systemd or Docker;
+- an example folder or file name that isn't recognised, if that's the problem;
+- what you expected, and what happened instead.
+
+## Licence
+
+Copyright © 2026 Cd084.
+
+TV Monitor is free software: you can share and change it under the terms of the [GNU General Public License v3.0](LICENSE). If you distribute a modified version, you must make its source code available under the same licence. It comes with no warranty.

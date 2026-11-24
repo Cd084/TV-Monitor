@@ -20,6 +20,7 @@ def create_app(data_dir=None, start_scheduler=True):
     app.config["DB"] = db
     app.config["AUTH_USER"] = os.environ.get("TVMONITOR_USER", "")
     app.config["AUTH_PASSWORD"] = os.environ.get("TVMONITOR_PASSWORD", "")
+    app.jinja_env.globals["app_version"] = __version__
 
     scheduler = Scheduler(db)
     app.config["SCHEDULER"] = scheduler

@@ -25,6 +25,13 @@
   {% endwith %}
   {% block content %}{% endblock %}
 </main>
+<footer class="footer">
+  TV Monitor {{ app_version }} ·
+  Metadata provided by <a href="https://thetvdb.com" target="_blank" rel="noopener">TheTVDB</a>.
+  Please consider adding missing information or subscribing. ·
+  Free software under the <a href="https://github.com/Cd084/TV-Monitor/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0</a>, with no warranty ·
+  <a href="https://github.com/Cd084/TV-Monitor" target="_blank" rel="noopener">Source code</a>
+</footer>
 <div id="toast" class="toast" hidden></div>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>

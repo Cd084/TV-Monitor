@@ -37,6 +37,7 @@ nav a.active { background: var(--surface-2); font-weight: 600; }
 .scanbox { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; }
 
 main { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
+.footer { max-width: 1200px; margin: 0 auto; padding: 0 16px 24px; color: var(--muted); font-size: 12px; text-align: center; }
 
 .btn { border: 1px solid var(--border); background: var(--surface); color: var(--text);
   padding: 7px 14px; border-radius: 6px; font: inherit; cursor: pointer; }
