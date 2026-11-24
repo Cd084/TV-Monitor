@@ -6,6 +6,12 @@ It's a small self-hosted web app: Python and Flask, with SQLite for its data. Ru
 
 Metadata provided by [TheTVDB](https://thetvdb.com). Please consider adding missing information or subscribing. TV Monitor is an independent project, not affiliated with or endorsed by TheTVDB.
 
+![Missing episodes, newest first, with a tick for ones set up for retrieval](docs/screenshots/missing.png)
+
+| Shows | Settings |
+|---|---|
+| ![Every show found, with per-show start season and ignore](docs/screenshots/shows.png) | ![TheTVDB key, what counts as missing, and the schedule](docs/screenshots/settings.png) |
+
 ## Requirements
 
 - Linux with systemd (Rocky/RHEL/Alma 8+, Fedora, Debian 11+, Ubuntu 20.04+, …) or Docker
